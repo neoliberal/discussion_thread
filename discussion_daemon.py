@@ -14,7 +14,7 @@ def main() -> None:
         umask=0o002,
         pidfile=daemon.pidfile.TimeoutPIDLockFile("/var/run/discussion_thread.pid")
         ):
-        thread.update()
+        thread.check_post()
         from time import sleep
         sleep(30)
 
