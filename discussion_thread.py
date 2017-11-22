@@ -19,11 +19,14 @@ class DiscussionThread(object):
 
     def check_post(self) -> bool:
         """posts or updates discussion thread if necessary"""
+        print("checking if any updates are needed")
         if self.needs_new():
+            print("needs new discussion thread")
             self.post()
             return True
 
         if self.updated_text() or self.updated_sticky():
+            print("updating text")
             self.update()
             return True
 
