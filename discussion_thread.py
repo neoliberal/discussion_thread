@@ -8,8 +8,8 @@ class DiscussionThread(object):
         self.reddit: praw.Reddit = reddit
         self.subreddit: praw.models.Subreddit = self.reddit.subreddit(subreddit)
         self.submission: praw.reddit.models.Submission = self.latest()
-        self.duration = new_duration
-        self.limit = comments_limit
+        self.duration: int = new_duration
+        self.limit: int = comments_limit
 
     def latest(self) -> praw.models.Submission:
         """returns the latest discussion thread"""
