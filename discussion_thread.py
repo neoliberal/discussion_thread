@@ -7,33 +7,9 @@ class DiscussionThread(object):
                  new_duration: int = 24, comments_limit: int = 300) -> None:
         self.reddit: praw.Reddit = reddit
         self.subreddit: praw.models.Subreddit = self.reddit.subreddit(subreddit)
+        self.submission: praw.reddit.models.Submission = self.latest()
         self.duration = new_duration
         self.limit = comments_limit
-
-    def update(self) -> bool:
-        """updates discussion thread if necessary"""
-        submission: praw.reddit.models.Submission = self.latest()
-        if self.needs_new(submission):
-            self.post(submission)
-        return True
-
-    def get_body(self) -> str:
-        """gets body from wiki page"""
-        return self.subreddit.wiki["dt/config"].content_md
-
-    def post(self, old: praw.models.Submission) -> bool:
-        """posts the discussion thread"""
-        old_moderation: praw.models.reddit.submission.SubmissionModeration = old.mod
-        old_moderation.sticky(state=False)
-
-        body: str = self.get_body()
-        new: praw.models.Submission = self.subreddit.submit(
-            "Discussion Thread", selftext=body, url=None, resubmit=True, send_replies=False)
-        new_moderation: praw.models.reddit.submission.SubmissionModeration = new.mod
-        new_moderation.sticky(state=True, bottom=False)
-        new_moderation.distinguish()
-        new_moderation.suggested_sort(sort='new')
-        return True
 
     def latest(self) -> praw.models.Submission:
         """returns the latest discussion thread"""
@@ -41,11 +17,59 @@ class DiscussionThread(object):
             if submission.author == self.reddit.user.me():
                 return submission
 
-    def needs_new(self, submission: praw.models.Submission) -> bool:
+    def check_post(self) -> bool:
+        """posts or updates discussion thread if necessary"""
+        if self.needs_new():
+            self.post()
+            return True
+
+        if self.updated_text() or self.updated_sticky():
+            self.update()
+            return True
+
+        return False
+
+    def get_body(self) -> str:
+        """gets body from wiki page"""
+        return self.subreddit.wiki["dt/config"].content_md
+
+    def post(self) -> bool:
+        """posts the discussion thread"""
+        old_moderation: praw.models.reddit.submission.SubmissionModeration = self.submission.mod
+        old_moderation.sticky(state=False)
+
+        body: str = self.get_body()
+        self.submission: praw.models.Submission = self.subreddit.submit(
+            "Discussion Thread", selftext=body, url=None, resubmit=True, send_replies=False)
+
+        new_moderation: praw.models.reddit.submission.SubmissionModeration = self.submission.mod
+        new_moderation.sticky(state=True, bottom=False)
+        new_moderation.distinguish()
+        new_moderation.suggested_sort(sort='new')
+
+        return True
+
+    def needs_new(self) -> bool:
         """checks if new discussion thread is needed"""
         import datetime
         time: datetime.timedelta = (datetime.datetime.utcnow() -
-                                    datetime.datetime.utcfromtimestamp(submission.created_utc))
-        hours: int = int(time.total_seconds() / 3600)
+                                    datetime.datetime.utcfromtimestamp(self.submission.created_utc))
+        hours: int = int(time.total_seconds() / (60 * 60))
 
-        return submission.num_comments > self.limit or hours > self.duration
+        return self.submission.num_comments > self.limit or hours > self.duration
+
+    def updated_text(self) -> bool:
+        """"checks if DT text has been updated"""
+        current_body: str = self.submission.body
+        wiki_body: str = self.get_body()
+        return current_body == wiki_body
+
+    def updated_sticky(self) -> bool:
+        """checks if sticky has been updated"""
+        #todo
+        pass
+
+    def update(self) -> bool:
+        """updates text of dt"""
+        self.submission.edit(self.get_body())
+        return True
