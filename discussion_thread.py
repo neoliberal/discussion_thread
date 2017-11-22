@@ -60,7 +60,7 @@ class DiscussionThread(object):
 
     def updated_text(self) -> bool:
         """"checks if DT text has been updated"""
-        current_body: str = self.submission.body
+        current_body: str = self.submission.selftext
         wiki_body: str = self.get_body()
         return current_body == wiki_body
 
