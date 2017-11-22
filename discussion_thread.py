@@ -3,25 +3,25 @@ import praw
 
 class DiscussionThread(object):
     """handles discussion thread"""
-    def __init__(self: DiscussionThread, reddit: praw.Reddit, subreddit: str,
+    def __init__(self, reddit: praw.Reddit, subreddit: str,
                  new_duration: int = 24, comments_limit: int = 300) -> None:
         self.reddit: praw.Reddit = reddit
         self.subreddit: praw.models.Subreddit = self.reddit.subreddit(subreddit)
         self.duration = new_duration
         self.limit = comments_limit
 
-    def update(self: DiscussionThread) -> bool:
+    def update(self) -> bool:
         """updates discussion thread if necessary"""
         submission: praw.reddit.models.Submission = self.latest()
         if self.needs_new(submission):
             self.post(submission)
         return True
 
-    def get_body(self: DiscussionThread) -> str:
+    def get_body(self) -> str:
         """gets body from wiki page"""
         return self.subreddit.wiki["dt/config"].content_md
 
-    def post(self: DiscussionThread, old: praw.models.Submission) -> bool:
+    def post(self, old: praw.models.Submission) -> bool:
         """posts the discussion thread"""
         old_moderation: praw.models.reddit.submission.SubmissionModeration = old.mod
         old_moderation.sticky(state=False)
@@ -35,13 +35,13 @@ class DiscussionThread(object):
         new_moderation.suggested_sort(sort='new')
         return True
 
-    def latest(self: DiscussionThread) -> praw.models.Submission:
+    def latest(self) -> praw.models.Submission:
         """returns the latest discussion thread"""
         for submission in self.subreddit.search("Discussion Thread", sort="new"):
             if submission.author == self.reddit.user.me():
                 return submission
 
-    def needs_new(self: DiscussionThread, submission: praw.models.Submission) -> bool:
+    def needs_new(self, submission: praw.models.Submission) -> bool:
         """checks if new discussion thread is needed"""
         import datetime
         time: datetime.timedelta = (datetime.datetime.utcnow() -
