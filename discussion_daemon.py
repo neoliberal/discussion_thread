@@ -10,13 +10,13 @@ def main() -> None:
     thread: DiscussionThread = DiscussionThread(reddit, "neoliberal")
 
     with daemon.DaemonContext(
-        working_directory="/var/lib/discussion-thread",
+        working_directory="/var/lib/discussion_thread",
         umask=0o002,
-        pidfile=daemon.pidfile.TimeoutPIDLockFile("/var/run/discussion-thread.pid")
+        pidfile=daemon.pidfile.TimeoutPIDLockFile("/var/run/discussion_thread.pid")
         ):
         thread.update()
         from time import sleep
-        sleep(5)
+        sleep(30)
 
 
 if __name__ == "main":
