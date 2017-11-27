@@ -27,10 +27,11 @@ def main() -> None:
         pidfile=pidfile.TimeoutPIDLockFile(
             "/var/run/discussion_thread.pid")
         ):
-        print("in daemon")
-        thread.check()
-        from time import sleep
-        sleep(30)
+        while True:
+            print("in daemon")
+            thread.check()
+            from time import sleep
+            sleep(30)
 
 
 if __name__ == "__main__":
