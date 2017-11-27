@@ -23,7 +23,8 @@ def main() -> None:
     with daemon.DaemonContext(
         working_directory="/var/lib/discussion_thread",
         umask=0o002,
-        pidfile=daemon.TimeoutPIDLockFile("/var/run/discussion_thread.pid")
+        pidfile=daemon.pidfile.TimeoutPIDLockFile(
+            "/var/run/discussion_thread.pid")
         ):
         print("in daemon")
         thread.check()
