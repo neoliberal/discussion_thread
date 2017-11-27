@@ -1,32 +1,33 @@
 """dicussion thread"""
+import logging
+
 import praw
+
+from slackbot.python_logging.slack_logger import make_slack_logger
 
 class DiscussionThread(object):
     """handles discussion thread"""
-    def __init__(self, reddit: praw.Reddit, subreddit: str,
-                 new_duration: int = 24, comments_limit: int = 300) -> None:
+    def __init__(self, reddit: praw.Reddit, subreddit: str, webhook_url: str,
+                 new_duration: int = 24) -> None:
         self.reddit: praw.Reddit = reddit
         self.subreddit: praw.models.Subreddit = self.reddit.subreddit(subreddit)
         self.submission: praw.reddit.models.Submission = self.latest()
         self.duration: int = new_duration
-        self.limit: int = comments_limit
+        self.logger: logging.Logger = make_slack_logger(webhook_url, "discussion-thread")
 
     def latest(self) -> praw.models.Submission:
-        """returns the latest discussion thread"""
+        """return latest discussion thread"""
         for submission in self.subreddit.search("Discussion Thread", sort="new"):
             if submission.author == self.reddit.user.me():
                 return submission
 
-    def check_post(self) -> bool:
+    def check(self) -> bool:
         """posts or updates discussion thread if necessary"""
-        print("checking if any updates are needed")
         if self.needs_new():
-            print("needs new discussion thread")
             self.post()
             return True
 
         if self.updated_text() or self.updated_sticky():
-            print("updating text")
             self.update()
             return True
 
@@ -44,6 +45,7 @@ class DiscussionThread(object):
         body: str = self.get_body()
         self.submission: praw.models.Submission = self.subreddit.submit(
             "Discussion Thread", selftext=body, url=None, resubmit=True, send_replies=False)
+        self.logger.info("New discussion thread posted at %s", self.submission.shortlink)
 
         new_moderation: praw.models.reddit.submission.SubmissionModeration = self.submission.mod
         new_moderation.sticky(state=True, bottom=False)
@@ -59,7 +61,7 @@ class DiscussionThread(object):
                                     datetime.datetime.utcfromtimestamp(self.submission.created_utc))
         hours: int = int(time.total_seconds() / (60 * 60))
 
-        return self.submission.num_comments > self.limit or hours > self.duration
+        return hours > self.duration
 
     def updated_text(self) -> bool:
         """"checks if DT text has been updated"""
@@ -74,5 +76,6 @@ class DiscussionThread(object):
 
     def update(self) -> bool:
         """updates text of dt"""
+        self.logger.info("Updating body of Discussion Thread")
         self.submission.edit(self.get_body())
         return True
