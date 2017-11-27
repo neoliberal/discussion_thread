@@ -1,5 +1,6 @@
 """turns discussion thread into daemon"""
 import daemon
+from daemon import pidfile
 
 from discussion_thread import DiscussionThread
 
@@ -23,7 +24,7 @@ def main() -> None:
     with daemon.DaemonContext(
         working_directory="/var/lib/discussion_thread",
         umask=0o002,
-        pidfile=daemon.pidfile.TimeoutPIDLockFile(
+        pidfile=pidfile.TimeoutPIDLockFile(
             "/var/run/discussion_thread.pid")
         ):
         print("in daemon")
