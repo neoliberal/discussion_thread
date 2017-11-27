@@ -3,7 +3,7 @@ import logging
 
 import praw
 
-from .slackbot.python_logging.slack_logger import make_slack_logger
+from slackbot.python_logging.slack_logger import make_slack_logger
 
 class DiscussionThread(object):
     """handles discussion thread"""
