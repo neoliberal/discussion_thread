@@ -67,7 +67,7 @@ class DiscussionThread(object):
         """"checks if DT text has been updated"""
         current_body: str = self.submission.selftext
         wiki_body: str = self.get_body()
-        return not (current_body == wiki_body)
+        return not(current_body == wiki_body)
 
     def updated_sticky(self) -> bool:
         """checks if sticky has been updated"""

@@ -26,8 +26,8 @@ def main() -> None:
         umask=0o002,
         pidfile=pidfile.TimeoutPIDLockFile(
             "/var/run/discussion_thread.pid")
-        ):
-        while True:
+    ) as context:
+        while context.is_open:
             print("in daemon")
             thread.check()
             from time import sleep
