@@ -14,11 +14,13 @@ class DiscussionThread(object):
         self.submission: praw.reddit.models.Submission = self.latest()
         self.duration: int = new_duration
         self.logger: logging.Logger = make_slack_logger(webhook_url, "discussion-thread")
+        self.logger.info("Discussion-Thread intialized successfully")
 
     def latest(self) -> praw.models.Submission:
         """return latest discussion thread"""
         for submission in self.subreddit.search("Discussion Thread", sort="new"):
             if submission.author == self.reddit.user.me():
+                self.logger.debug("Latest discussion thread returned")
                 return submission
 
     def check(self) -> bool:
@@ -27,15 +29,19 @@ class DiscussionThread(object):
             self.post()
             return True
 
-        if self.updated_text() or self.updated_sticky():
-            self.update()
+        if self.updated_text():
+            self.update_body()
+            return True
+
+        if self.updated_sticky():
+            self.update_sticky()
             return True
 
         return False
 
     def get_body(self) -> str:
         """gets body from wiki page"""
-        return self.subreddit.wiki["dt/config"].content_md
+        return self.subreddit.wiki["dt/config/body"].content_md
 
     def post(self) -> bool:
         """posts the discussion thread"""
@@ -67,15 +73,20 @@ class DiscussionThread(object):
         """"checks if DT text has been updated"""
         current_body: str = self.submission.selftext
         wiki_body: str = self.get_body()
-        return not(current_body == wiki_body)
+        return not current_body == wiki_body
 
-    def updated_sticky(self) -> bool:
-        """checks if sticky has been updated"""
-        #todo
-        pass
-
-    def update(self) -> bool:
+    def update_body(self) -> bool:
         """updates text of dt"""
         self.logger.info("Updating body of Discussion Thread")
         self.submission.edit(self.get_body())
         return True
+
+    def updated_sticky(self) -> bool:
+        """checks if sticky has been updated"""
+        # todo
+        pass
+
+    def update_sticky(self) -> bool:
+        """updates sticky comment"""
+        # todo
+        pass
