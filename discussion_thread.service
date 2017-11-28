@@ -1,0 +1,14 @@
+[Unit]
+Description=Discussion_Thread
+After=multi-user.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStart=/usr/bin/python3.6 /var/lib/discussion_thread/discussion_service.py
+User=admin
+WorkingDirectory=/var/lib/discussion_thread
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
