@@ -9,11 +9,11 @@ class DiscussionThread(object):
     """handles discussion thread"""
     def __init__(self, reddit: praw.Reddit, subreddit: str, webhook_url: str,
                  new_duration: int = 24) -> None:
+        self.logger: logging.Logger = make_slack_logger(webhook_url, "discussion-thread")
         self.reddit: praw.Reddit = reddit
         self.subreddit: praw.models.Subreddit = self.reddit.subreddit(subreddit)
         self.submission: praw.reddit.models.Submission = self.latest()
         self.duration: int = new_duration
-        self.logger: logging.Logger = make_slack_logger(webhook_url, "discussion-thread")
         self.logger.info("Discussion-Thread intialized successfully")
 
     def latest(self) -> praw.models.Submission:
