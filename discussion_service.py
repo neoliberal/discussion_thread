@@ -1,7 +1,5 @@
 """turns discussion thread into daemon"""
-import logging
 import os
-import sys
 
 import praw
 
@@ -18,23 +16,8 @@ def main() -> None:
 
     thread: DiscussionThread = DiscussionThread(
         reddit,
-        "neoliberal",
-        os.environ["slack_webhook_url"]
+        "neoliberal"
     )
-    file_handler: logging.Handler = logging.FileHandler("/var/log/discussion_thread.log")
-    format_string: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    file_handler.setFormatter(logging.Formatter(format_string))
-    file_handler.setLevel(logging.DEBUG)
-    thread.logger.addHandler(file_handler)
-
-    def log_unhandled(*exc_info):
-        """sys.excepthook override"""
-        import traceback
-        # pylint: disable=E1120
-        text: str = "".join(traceback.format_exception(*exc_info))
-        thread.logger.critical(text)
-
-    sys.excepthook = log_unhandled
 
     while True:
         thread.check()
