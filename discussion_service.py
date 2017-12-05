@@ -1,4 +1,4 @@
-"""turns discussion thread into daemon"""
+"""turns discussion thread into service"""
 import os
 
 import praw
