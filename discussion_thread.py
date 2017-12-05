@@ -1,7 +1,7 @@
 """dicussion thread"""
 from configparser import ConfigParser
 import logging
-from typing import List
+from typing import List, Optional
 
 import praw
 from schedule import Scheduler
@@ -11,46 +11,59 @@ from slackbot.python_logging.slack_logger import make_slack_logger
 class DiscussionThread(object):
     """handles discussion thread"""
     def __init__(self, reddit: praw.Reddit, subreddit: str) -> None:
+        def get_config() -> ConfigParser:
+            """grabs config"""
+            parser: ConfigParser = ConfigParser(allow_no_value=True)
+            self.logger.debug("Grabbing config")
+            config_string = self.subreddit.wiki["dt/config"].content_md
+            if not config_string:
+                self.logger.debug("Config grabbed")
+                parser.read_string(config_string)
+            else:
+                self.logger.error("No config found")
+            return parser
+
+        def latest() -> Optional[praw.models.Submission]:
+            """return latest discussion thread"""
+            self.logger.debug("Fetching latest discussion thread")
+            for submission in self.subreddit.search(
+                    self.config.get("config", "title", fallback="Discussion Thread"),
+                    sort="new"
+                ):
+                if submission.author == self.reddit.user.me():
+                    self.logger.debug("Latest discussion thread returned")
+                    return submission
+            self.logger.warning("Could not find latest discussion thread. Returning None")
+            return None
+
+        def make_scheduler() -> Scheduler:
+            """makes scheduler object"""
+            self.logger.debug("Making scheduler")
+            scheduler: Scheduler = Scheduler()
+            days: List[str] = self.config.options("days")
+            time: str = self.config.get("config", "time", fallback="1:00")
+            self.logger.debug("Setting discussion thread time to \"%s\"", time)
+
+            if days:
+                for day in days:
+                    self.logger.debug("Adding day \"%s\" to scheduler", day)
+                    getattr(scheduler.every(), day).at(time).do(self.post)
+            else:
+                self.logger.warning("No days are specified in the config, setting to all days")
+                scheduler.every().day.at(time).do(self.post)
+
+            self.logger.debug("Scheduler made")
+            return scheduler
+
         self.logger: logging.Logger = make_slack_logger("discussion-thread")
         self.reddit: praw.Reddit = reddit
         self.subreddit: praw.models.Subreddit = self.reddit.subreddit(subreddit)
 
-        self.submission: praw.reddit.models.Submission = self.latest()
-        self.config: ConfigParser = self.get_config()
-        self.schedule: Scheduler = self.make_scheduler()
+        self.config: ConfigParser = get_config()
+        self.submission: Optional[praw.reddit.models.Submission] = latest()
+        self.schedule: Scheduler = make_scheduler()
         self.logger.info("discussion-thread intialized successfully")
         return
-
-    def latest(self) -> praw.models.Submission:
-        """return latest discussion thread"""
-        self.logger.debug("Fetching latest discussion thread")
-        for submission in self.subreddit.search("Discussion Thread", sort="new"):
-            if submission.author == self.reddit.user.me():
-                self.logger.debug("Latest discussion thread returned")
-                return submission
-
-    def get_config(self) -> ConfigParser:
-        """grabs config"""
-        self.logger.debug("Grabbing config")
-        parser: ConfigParser = ConfigParser(allow_no_value=True)
-        parser.read_string(self.subreddit.wiki["dt/config"].content_md)
-        self.logger.debug("Config grabbed")
-        return parser
-
-    def make_scheduler(self) -> Scheduler:
-        """makes scheduler object"""
-        self.logger.debug("Making scheduler")
-        scheduler: Scheduler = Scheduler()
-        days: List[str] = self.config.options("days")
-        time: str = self.config["config"]["time"]
-        self.logger.debug("Setting discussion thread time to \"%s\"", time)
-
-        for day in days:
-            self.logger.debug("Adding day \"%s\" to scheduler", day)
-            getattr(scheduler.every(), day).at(time).do(self.post)
-
-        self.logger.debug("Scheduler made")
-        return scheduler
 
     def check(self) -> bool:
         """posts or updates discussion thread if necessary"""
@@ -72,10 +85,8 @@ class DiscussionThread(object):
 
     def post(self) -> bool:
         """posts the discussion thread"""
-        old_moderation: praw.models.reddit.submission.SubmissionModeration = self.submission.mod
-        old_moderation.sticky(state=False)
-
-        self.submission: praw.models.Submission = self.subreddit.submit(
+        self.logger.debug("Posting new discussion thread")
+        new_thread: praw.Models.Submission = self.subreddit.submit(
             self.config.get("config", "title", fallback="Discussion Thread"),
             selftext=self.get_body(),
             url=None,
@@ -84,12 +95,32 @@ class DiscussionThread(object):
             resubmit=True,
             send_replies=False
         )
-        self.logger.info("New discussion thread posted at %s", self.submission.shortlink)
+        self.logger.info("New discussion thread posted at %s", new_thread.shortlink)
 
-        new_moderation: praw.models.reddit.submission.SubmissionModeration = self.submission.mod
+        old_thread: Optional[praw.Models.Submission] = self.submission
+        if old_thread is not None:
+            self.logger.debug("Unstickying old thread")
+            old_moderation: praw.models.reddit.submission.SubmissionModeration = self.submission.mod
+            old_moderation.sticky(state=False)
+            self.logger.debug("Unstickyied old thread")
+            self.logger.debug("Posting new discussion thread comment in old thread")
+            visit_comment: praw.models.Comment = old_thread.reply(
+                "Please visit the [new discussion thread]({}).".format(new_thread.shortlink)
+            )
+            visit_comment.mod.distinguish(sticky=True)
+            self.logger.debug("Posted new discussion thread comment in old thread")
+
+
+        new_moderation: praw.models.reddit.submission.SubmissionModeration = new_thread.mod
+        self.logger.debug("Stickying new thread")
         new_moderation.sticky(state=True, bottom=False)
         new_moderation.distinguish()
+        self.logger.debug("Stickied new thread")
+        self.logger.debug("Sorting new thread")
         new_moderation.suggested_sort(sort="new")
+        self.logger.debug("Sorted new thread")
+
+        self.submission = new_thread
 
         return True
 
@@ -101,8 +132,9 @@ class DiscussionThread(object):
 
     def update_body(self) -> bool:
         """updates text of dt"""
-        self.logger.info("Updating body of Discussion Thread")
+        self.logger.debug("Updating body of Discussion Thread")
         self.submission.edit(self.get_body())
+        self.logger.info("Updated body of discussion thread")
         return True
 
     def updated_sticky(self) -> bool:
