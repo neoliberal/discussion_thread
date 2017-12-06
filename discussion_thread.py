@@ -1,9 +1,10 @@
 """dicussion thread"""
 from configparser import ConfigParser, NoSectionError
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 
 import praw
+from prettytable import PrettyTable
 from schedule import Scheduler
 
 from slackbot.python_logging.slack_logger import make_slack_logger
@@ -102,7 +103,7 @@ class DiscussionThread(object):
         old_thread: Optional[praw.Models.Submission] = self.submission
         if old_thread is not None:
             self.logger.debug("Unstickying old thread")
-            old_moderation: praw.models.reddit.submission.SubmissionModeration = self.submission.mod
+            old_moderation: praw.models.reddit.submission.SubmissionModeration = old_thread.mod
             old_moderation.sticky(state=False)
             self.logger.debug("Unstickyied old thread")
 
@@ -112,6 +113,16 @@ class DiscussionThread(object):
             )
             visit_comment.mod.distinguish(sticky=True)
             self.logger.debug("Posted new discussion thread comment in old thread")
+
+            self.logger.debug("Posting user count table in new thread")
+            new_thread.reply(
+                f"""
+                User Statistics on last discussion thread:
+
+                {self.user_count(old_thread)}
+                """
+            )
+            self.logger.debug("Posted user count table in new thread")
 
 
         new_moderation: praw.models.reddit.submission.SubmissionModeration = new_thread.mod
@@ -158,3 +169,47 @@ class DiscussionThread(object):
         """updates sticky comment"""
         # todo
         pass
+
+    def user_count(self, submission: praw.models.Submission) -> PrettyTable:
+        """
+        returns formatted table of Name, Postcount, Karma, and Karma/Post
+
+        credit to /u/zqvt
+        """
+        self.logger.debug("Constructing table of user count table")
+        submission.comments.replace_more(limit=0)
+        comment_count: Dict[str, Tuple[int, int]] = dict()
+
+        self.logger.debug("Making dictionary")
+        for comment in submission.comments.list():
+            author = comment.author.name
+            score = comment.score
+            if author not in comment_count:
+                comment_count[author] = (1, score)
+            else:
+                old_count, old_score = comment_count[author]
+                comment_count[author] = (old_count + 1, old_score + score)
+        self.logger.debug("Made dictionary")
+
+        self.logger.debug("Sorting users")
+        sorted_users: List[Tuple[str, Tuple[int, int]]] = sorted(
+            comment_count.items(),
+            key=(lambda item: item[1][0]),
+            reverse=True
+        )
+        self.logger.debug("Sorted users")
+
+        self.logger.debug("Constructing table")
+        table: PrettyTable = PrettyTable(['Name', 'Count', 'Karma', 'Karma / Post'])
+        for user in sorted_users:
+            karma_post: float = float(user[1][1] / user[1][0])
+            table.add_row([
+                "/u/{}".format(user[0]),
+                user[1][0],
+                user[1][1],
+                '{0:2.2f}'.format(karma_post)
+            ])
+        self.logger.debug("Constructed table")
+
+        self.logger.debug("Constructed table of user count table")
+        return table
