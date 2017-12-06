@@ -1,5 +1,5 @@
 """dicussion thread"""
-from configparser import ConfigParser
+from configparser import ConfigParser, NoSectionError
 import logging
 from typing import List, Optional
 
@@ -40,17 +40,18 @@ class DiscussionThread(object):
             """makes scheduler object"""
             self.logger.debug("Making scheduler")
             scheduler: Scheduler = Scheduler()
-            days: List[str] = self.config.options("days")
             time: str = self.config.get("config", "time", fallback="1:00")
             self.logger.debug("Setting discussion thread time to \"%s\"", time)
 
-            if days:
+            try:
+                days: List[str] = self.config.options("days")
+            except NoSectionError:
+                self.logger.exception("No days are specified in the config, setting to all days")
+                scheduler.every().day.at(time).do(self.post)
+            else:
                 for day in days:
                     self.logger.debug("Adding day \"%s\" to scheduler", day)
                     getattr(scheduler.every(), day).at(time).do(self.post)
-            else:
-                self.logger.warning("No days are specified in the config, setting to all days")
-                scheduler.every().day.at(time).do(self.post)
 
             self.logger.debug("Scheduler made")
             return scheduler
