@@ -90,8 +90,6 @@ class DiscussionThread(object):
             self.config.get("config", "title", fallback="Discussion Thread"),
             selftext=self.get_body(),
             url=None,
-            flair_id=self.config.get("flair", "id", fallback=None),
-            flair_text=self.config.get("flair", "text", fallback=None),
             resubmit=True,
             send_replies=False
         )
@@ -119,6 +117,12 @@ class DiscussionThread(object):
         self.logger.debug("Sorting new thread")
         new_moderation.suggested_sort(sort="new")
         self.logger.debug("Sorted new thread")
+        self.logger.debug("Setting discussion thread flair")
+        new_moderation.flair(
+            css_class=self.config.get("flair", "id", fallback=''),
+            text=self.config.get("flair", "text", fallback=''),
+        )
+        self.logger.debug("Set discussion thread flair")
 
         self.submission = new_thread
 
