@@ -36,6 +36,9 @@ def user_count(submission: praw.models.Submission) -> PrettyTable:
 
     print("Constructing table")
     table: PrettyTable = PrettyTable(['Name', 'Count', 'Karma', 'Karma / Post'])
+    table.border = False
+    table.header = False
+    table.junction_char = '|'
     for user in sorted_users:
         karma_post: float = float(user[1][1] / user[1][0])
         table.add_row([
