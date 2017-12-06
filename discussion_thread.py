@@ -98,7 +98,7 @@ class DiscussionThread(object):
             resubmit=True,
             send_replies=False
         )
-        self.logger.info("New discussion thread posted at %s", new_thread.shortlink)
+        self.logger.info("<New discussion thread posted|%s>", new_thread.permalink)
 
         old_thread: Optional[praw.Models.Submission] = self.submission
         if old_thread is not None:
@@ -109,7 +109,7 @@ class DiscussionThread(object):
 
             self.logger.debug("Posting new discussion thread comment in old thread")
             visit_comment: praw.models.Comment = old_thread.reply(
-                "Please visit the [new discussion thread]({}).".format(new_thread.shortlink)
+                f"Please visit the [new discussion thread]({new_thread.permalink})."
             )
             visit_comment.mod.distinguish(sticky=True)
             self.logger.debug("Posted new discussion thread comment in old thread")
@@ -138,7 +138,7 @@ class DiscussionThread(object):
             self.logger.debug("Posting user count table in new thread")
             new_thread.reply(
                 f"""
-                User Statistics on last discussion thread:
+                Top 150 Users on the [Last Discussion Thread]({old_thread.permalink}):
 
                 {self.user_count(old_thread)}
                 """
@@ -182,7 +182,7 @@ class DiscussionThread(object):
 
         self.logger.debug("Making dictionary")
         for comment in submission.comments.list():
-            author = comment.author.name
+            author = comment.author
             score = comment.score
             if author not in comment_count:
                 comment_count[author] = (1, score)
@@ -196,18 +196,19 @@ class DiscussionThread(object):
             comment_count.items(),
             key=(lambda item: item[1][0]),
             reverse=True
-        )
+        )[:150]
         self.logger.debug("Sorted users")
 
         self.logger.debug("Constructing table")
         table: PrettyTable = PrettyTable(['Name', 'Count', 'Karma', 'Karma / Post'])
+        table.junction_char = '|'
         for user in sorted_users:
             karma_post: float = float(user[1][1] / user[1][0])
             table.add_row([
-                "/u/{}".format(user[0]),
+                f"/u/{user[0]}",
                 user[1][0],
                 user[1][1],
-                '{0:2.2f}'.format(karma_post)
+                f'{karma_post:2.2f}'
             ])
         self.logger.debug("Constructed table")
 
