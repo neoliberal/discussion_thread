@@ -114,17 +114,6 @@ class DiscussionThread(object):
             visit_comment.mod.distinguish(sticky=True)
             self.logger.debug("Posted new discussion thread comment in old thread")
 
-            self.logger.debug("Posting user count table in new thread")
-            new_thread.reply(
-                f"""
-                User Statistics on last discussion thread:
-
-                {self.user_count(old_thread)}
-                """
-            )
-            self.logger.debug("Posted user count table in new thread")
-
-
         new_moderation: praw.models.reddit.submission.SubmissionModeration = new_thread.mod
 
         self.logger.debug("Stickying new thread")
@@ -144,6 +133,17 @@ class DiscussionThread(object):
         self.logger.debug("Set discussion thread flair")
 
         self.submission = new_thread
+
+        if old_thread is not None:
+            self.logger.debug("Posting user count table in new thread")
+            new_thread.reply(
+                f"""
+                User Statistics on last discussion thread:
+
+                {self.user_count(old_thread)}
+                """
+            )
+            self.logger.debug("Posted user count table in new thread")
 
         return True
 
@@ -177,7 +177,7 @@ class DiscussionThread(object):
         credit to /u/zqvt
         """
         self.logger.debug("Constructing table of user count table")
-        submission.comments.replace_more(limit=0)
+        submission.comments.replace_more(limit=None)
         comment_count: Dict[str, Tuple[int, int]] = dict()
 
         self.logger.debug("Making dictionary")
