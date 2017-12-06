@@ -16,7 +16,7 @@ class DiscussionThread(object):
             parser: ConfigParser = ConfigParser(allow_no_value=True)
             self.logger.debug("Grabbing config")
             config_string = self.subreddit.wiki["dt/config"].content_md
-            if not config_string:
+            if config_string:
                 self.logger.debug("Config grabbed")
                 parser.read_string(config_string)
             else:
