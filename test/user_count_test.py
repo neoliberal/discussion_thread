@@ -16,7 +16,8 @@ def user_count(submission: praw.models.Submission) -> PrettyTable:
 
     print("Making dictionary")
     for comment in submission.comments.list():
-        author = comment.author.name
+        print(comment)
+        author = comment.author
         score = comment.score
         if author not in comment_count:
             comment_count[author] = (1, score)
