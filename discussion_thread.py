@@ -51,7 +51,10 @@ class DiscussionThread(object):
             else:
                 for day in days:
                     self.logger.debug("Adding day \"%s\" to scheduler", day)
-                    getattr(scheduler.every(), day).at(time).do(self.post)
+                    try:
+                        getattr(scheduler.every(), day).at(time).do(self.post)
+                    except AttributeError:
+                        self.logger.exception("\"%s\" is not an valid day, skipping")
 
             self.logger.debug("Scheduler made")
             return scheduler
@@ -102,6 +105,7 @@ class DiscussionThread(object):
             old_moderation: praw.models.reddit.submission.SubmissionModeration = self.submission.mod
             old_moderation.sticky(state=False)
             self.logger.debug("Unstickyied old thread")
+
             self.logger.debug("Posting new discussion thread comment in old thread")
             visit_comment: praw.models.Comment = old_thread.reply(
                 "Please visit the [new discussion thread]({}).".format(new_thread.shortlink)
@@ -111,13 +115,16 @@ class DiscussionThread(object):
 
 
         new_moderation: praw.models.reddit.submission.SubmissionModeration = new_thread.mod
+
         self.logger.debug("Stickying new thread")
         new_moderation.sticky(state=True, bottom=False)
         new_moderation.distinguish()
         self.logger.debug("Stickied new thread")
+
         self.logger.debug("Sorting new thread")
         new_moderation.suggested_sort(sort="new")
         self.logger.debug("Sorted new thread")
+
         self.logger.debug("Setting discussion thread flair")
         new_moderation.flair(
             css_class=self.config.get("flair", "id", fallback=''),
