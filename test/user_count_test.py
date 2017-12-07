@@ -31,20 +31,20 @@ def user_count(submission: praw.models.Submission) -> PrettyTable:
         comment_count.items(),
         key=(lambda item: item[1][0]),
         reverse=True
-    )
-    sorted_users = sorted_users[:100]
+    )[:200]
     print("Sorted users")
 
     print("Constructing table")
     table: PrettyTable = PrettyTable(['Name', 'Count', 'Karma', 'Karma / Post'])
     table.junction_char = '|'
+    table.border = False
     for user in sorted_users:
         karma_post: float = float(user[1][1] / user[1][0])
         table.add_row([
-            "/u/{}".format(user[0]),
+            f"/u/{user[0]}",
             user[1][0],
             user[1][1],
-            '{0:2.2f}'.format(karma_post)
+            f'{karma_post:2.2f}'
         ])
     print("Constructed table")
 
