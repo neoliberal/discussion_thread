@@ -82,6 +82,9 @@ class DiscussionThread(object):
             self.update_sticky()
             return True
 
+        # while we're in the loop, might as well replace MoreComments
+        self.submission.replace_more(limit=0)
+
         return False
 
     def get_body(self) -> str:
