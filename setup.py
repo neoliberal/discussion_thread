@@ -9,6 +9,7 @@ with open('requirements.txt') as file:
 setup(
     name="discussion_thread",
     description="Manages the daily discussion thread on /r/neoliberal",
+    version="1.0.0",
     url="https://github.com/neoliberal/discussion_thread",
     author="Abhi Agarwal",
     author_email="abhi@neoliber.al",
