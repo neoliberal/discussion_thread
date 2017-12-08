@@ -19,7 +19,7 @@ setup(
         "Environment :: No Input/Output (Daemon)",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
-        "Programming Language :: Python:: 3 :: Only",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
     keywords="reddit neoliberal discussion_thread",
