@@ -1,7 +1,7 @@
 """setup"""
 from typing import List
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("requirements.txt") as file:
     requirements: List[str] = file.read().splitlines()
@@ -18,7 +18,7 @@ setup(
         ]
     },
     include_package_data=True,
-    packages=["discussion_thread"],
+    packages=find_packages(),
     package_dir={"": "discussion_thread"},
     package_data={
         "discussion_thread": ["data/*.env", "data/*.service"]
