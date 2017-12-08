@@ -137,7 +137,7 @@ class DiscussionThread(object):
 
         self.submission = new_thread
 
-        if old_thread is not None:
+        if False:
             self.logger.debug("Posting user count table in new thread")
             new_thread.reply(
                 f"""
