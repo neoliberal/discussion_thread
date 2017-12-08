@@ -105,10 +105,10 @@ class DiscussionThread(object):
 
         old_thread: Optional[praw.Models.Submission] = self.submission
         if old_thread is not None:
-            self.logger.debug("Unstickying old thread")
+            self.logger.debug("Unsticking old thread")
             old_moderation: praw.models.reddit.submission.SubmissionModeration = old_thread.mod
             old_moderation.sticky(state=False)
-            self.logger.debug("Unstickyied old thread")
+            self.logger.debug("Unstickied old thread")
 
             self.logger.debug("Posting new discussion thread comment in old thread")
             visit_comment: praw.models.Comment = old_thread.reply(
