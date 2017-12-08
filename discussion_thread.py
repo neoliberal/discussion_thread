@@ -47,7 +47,7 @@ class DiscussionThread(object):
             try:
                 days: List[str] = self.config.options("days")
             except NoSectionError:
-                self.logger.exception("No days are specified in the config, setting to all days")
+                self.logger.error("No days are specified in the config, setting to all days")
                 scheduler.every().day.at(time).do(self.post)
             else:
                 for day in days:
