@@ -9,7 +9,7 @@ with open("requirements.txt") as file:
 setup(
     name="discussion_thread",
     description="Manages the daily discussion thread on /r/neoliberal",
-    version="1.0.0",
+    version="1.0.1",
     python_requires='>=3',
     install_requires=requirements,
     entry_points={
