@@ -83,7 +83,7 @@ class DiscussionThread(object):
             return True
 
         # while we're in the loop, might as well replace MoreComments
-        self.submission.replace_more(limit=0)
+        # self.submission.replace_more(limit=0)
 
         return False
 
