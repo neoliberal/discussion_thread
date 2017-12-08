@@ -101,7 +101,10 @@ class DiscussionThread(object):
             resubmit=True,
             send_replies=False
         )
-        self.logger.info("<New discussion thread posted|https://reddit.com/%s>", new_thread.permalink)
+        self.logger.info(
+            "<New discussion thread posted|https://reddit.com/%s>",
+            new_thread.permalink
+        )
 
         old_thread: Optional[praw.Models.Submission] = self.submission
         if old_thread is not None:
