@@ -16,7 +16,7 @@ setup(
     license="MIT",
     classifiers=[
         "Development Status :: 4 - Beta",
-        "Environment :: No Input / Output(Daemon)",
+        "Environment :: No Input/Output (Daemon)",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python:: 3 :: Only",
