@@ -181,10 +181,13 @@ class DiscussionThread(object):
         credit to /u/zqvt
         """
         self.logger.debug("Constructing table of user count table")
+
+        self.logger.debug("Replacing remaining MoreComments")
         submission.comments.replace_more(limit=None)
-        comment_count: Dict[str, Tuple[int, int]] = dict()
+        self.logger.debug("Replaced remaining MoreComments")
 
         self.logger.debug("Making dictionary")
+        comment_count: Dict[str, Tuple[int, int]] = dict()
         for comment in submission.comments.list():
             author = comment.author
             score = comment.score
