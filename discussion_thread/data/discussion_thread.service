@@ -1,5 +1,5 @@
 [Unit]
-Description=Discussion_Thread
+Description=discussion_thread
 After=multi-user.target
 
 [Service]
