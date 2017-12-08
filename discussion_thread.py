@@ -101,7 +101,7 @@ class DiscussionThread(object):
             resubmit=True,
             send_replies=False
         )
-        self.logger.info("<New discussion thread posted|%s>", new_thread.permalink)
+        self.logger.info("<New discussion thread posted|https://reddit.com/%s>", new_thread.permalink)
 
         old_thread: Optional[praw.Models.Submission] = self.submission
         if old_thread is not None:
@@ -112,8 +112,7 @@ class DiscussionThread(object):
 
             self.logger.debug("Posting new discussion thread comment in old thread")
             visit_comment: praw.models.Comment = old_thread.reply(
-                f"Please visit the [next discussion thread]"
-                f"(https://reddit.com{new_thread.permalink})."
+                f"Please visit the [next discussion thread]({new_thread.permalink})."
             )
             visit_comment.mod.distinguish(sticky=True)
             self.logger.debug("Posted new discussion thread comment in old thread")
