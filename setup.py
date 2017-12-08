@@ -1,18 +1,32 @@
 """setup"""
 from typing import List
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
-with open('requirements.txt') as file:
+with open("requirements.txt") as file:
     requirements: List[str] = file.read().splitlines()
 
 setup(
     name="discussion_thread",
     description="Manages the daily discussion thread on /r/neoliberal",
     version="1.0.0",
-    url="https://github.com/neoliberal/discussion_thread",
+    python_requires='>=3',
+    install_requires=requirements,
+    entry_points={
+        "console_scripts": [
+            "start_discussion_thread = discussion_thread.service:main"
+        ]
+    },
+    include_package_data=True,
+    packages=["discussion_thread"],
+    package_dir={"": "discussion_thread"},
+    package_data={
+        "discussion_thread": ["data/*.env", "data/*.service"]
+    },
+    # metadata
     author="Abhi Agarwal",
     author_email="abhi@neoliber.al",
+    url="https://github.com/neoliberal/discussion_thread",
     license="MIT",
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -23,17 +37,4 @@ setup(
         "Programming Language :: Python :: Implementation :: CPython",
     ],
     keywords="reddit neoliberal discussion_thread",
-    packages=find_packages("discussion_thread"),
-    package_dir={"" : "discussion_thread"},
-    install_requires=requirements,
-    python_requires='>=3',
-    include_package_data=True,
-    package_data={
-        "discussion_thread" : ["data/*.env", "data/*.service"]
-    },
-    entry_points={
-        "console_scripts": [
-            "start_discussion_thread = discussion_thread.service:main"
-        ]
-    }
 )
