@@ -142,7 +142,7 @@ class DiscussionThread(object):
         self.logger.debug("Posting user count table in new thread")
         new_thread.reply(
             f"""
-            Top 150 Users on the [Last Discussion Thread]({old_thread.permalink}):
+            Top 100 Users on the [Last Discussion Thread]({old_thread.permalink}):
 
             {self.user_count(old_thread)}
             """
@@ -203,7 +203,7 @@ class DiscussionThread(object):
             comment_count.items(),
             key=(lambda item: item[1][0]),
             reverse=True
-        )[:150]
+        )[:100]
         self.logger.debug("Sorted users")
 
         self.logger.debug("Constructing table")
