@@ -6,8 +6,7 @@ from typing import List, Optional, Dict, Tuple
 import praw
 from prettytable import PrettyTable
 from schedule import Scheduler
-
-from slackbot.python_logging.slack_logger import make_slack_logger
+from slack_python_logging import slack_logger
 
 class DiscussionThread(object):
     """handles discussion thread"""
@@ -60,7 +59,7 @@ class DiscussionThread(object):
             self.logger.debug("Scheduler made")
             return scheduler
 
-        self.logger: logging.Logger = make_slack_logger("discussion-thread")
+        self.logger: logging.Logger = slack_logger.initialize("discussion-thread")
         self.reddit: praw.Reddit = reddit
         self.subreddit: praw.models.Subreddit = self.reddit.subreddit(subreddit)
 

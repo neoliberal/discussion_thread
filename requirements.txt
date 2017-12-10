@@ -1,3 +1,4 @@
 praw
 schedule
-PTable
+slack_python_logging
+tabulate
