@@ -4,8 +4,8 @@ import logging
 from typing import List, Optional, Dict, Tuple
 
 import praw
-from prettytable import PrettyTable
 from schedule import Scheduler
+from tabulate import tabulate
 from slack_python_logging import slack_logger
 
 class DiscussionThread(object):
@@ -139,16 +139,15 @@ class DiscussionThread(object):
 
         self.submission = new_thread
 
-        if False:
-            self.logger.debug("Posting user count table in new thread")
-            new_thread.reply(
-                f"""
-                Top 150 Users on the [Last Discussion Thread]({old_thread.permalink}):
+        self.logger.debug("Posting user count table in new thread")
+        new_thread.reply(
+            f"""
+            Top 150 Users on the [Last Discussion Thread]({old_thread.permalink}):
 
-                {self.user_count(old_thread)}
-                """
-            )
-            self.logger.debug("Posted user count table in new thread")
+            {self.user_count(old_thread)}
+            """
+        )
+        self.logger.debug("Posted user count table in new thread")
 
         return True
 
@@ -175,7 +174,7 @@ class DiscussionThread(object):
         # todo
         pass
 
-    def user_count(self, submission: praw.models.Submission) -> PrettyTable:
+    def user_count(self, submission: praw.models.Submission) -> str:
         """
         returns formatted table of Name, Postcount, Karma, and Karma/Post
 
@@ -208,17 +207,20 @@ class DiscussionThread(object):
         self.logger.debug("Sorted users")
 
         self.logger.debug("Constructing table")
-        table: PrettyTable = PrettyTable(['Name', 'Count', 'Karma', 'Karma / Post'])
-        table.junction_char = '|'
+        table: List[Tuple[str, int, int, float]] = []
         for user in sorted_users:
-            karma_post: float = float(user[1][1] / user[1][0])
-            table.add_row([
+            table.append((
                 f"/u/{user[0]}",
                 user[1][0],
                 user[1][1],
-                f'{karma_post:2.2f}'
-            ])
+                float(user[1][1] / user[1][0])
+            ))
         self.logger.debug("Constructed table")
 
         self.logger.debug("Constructed table of user count table")
-        return table
+        return tabulate(
+            table,
+            headers=["User", "Count", "Karma", "Karma / Post"],
+            tablefmt="pipe",
+            floatfmt="2.2f",
+        )
