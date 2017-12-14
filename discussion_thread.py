@@ -81,8 +81,7 @@ class DiscussionThread(object):
             self.update_sticky()
             return True
 
-        # while we're in the loop, might as well replace MoreComments
-        self.submission.comments.replace_more(limit=0)
+        # self.submission.comments.replace_more(limit=0)
 
         return False
 
@@ -101,7 +100,7 @@ class DiscussionThread(object):
             send_replies=False
         )
         self.logger.info(
-            "<New discussion thread posted|https://reddit.com/%s>",
+            "<https://reddit.com%s|New discussion thread posted>",
             new_thread.permalink
         )
 
@@ -139,15 +138,15 @@ class DiscussionThread(object):
 
         self.submission = new_thread
 
-        self.logger.debug("Posting user count table in new thread")
-        new_thread.reply(
-            f"""
-            Top 100 Users on the [Last Discussion Thread]({old_thread.permalink}):
+        # self.logger.debug("Posting user count table in new thread")
+        # new_thread.reply(
+        #     f"""
+        #     Top 100 Users on the [Last Discussion Thread]({old_thread.permalink}):
 
-            {self.user_count(old_thread)}
-            """
-        )
-        self.logger.debug("Posted user count table in new thread")
+        #     {self.user_count(old_thread)}
+        #     """
+        # )
+        # self.logger.debug("Posted user count table in new thread")
 
         return True
 
