@@ -71,16 +71,28 @@ class DiscussionThread(object):
 
     def check(self) -> bool:
         """posts or updates discussion thread if necessary"""
-        self.schedule.run_pending()
+        import prawcore
+        from time import sleep
 
-        if self.updated_text():
-            self.update_body()
-            return True
+        try:
+            self.schedule.run_pending()
 
-        if self.updated_sticky():
-            self.update_sticky()
-            return True
+            if self.updated_text():
+                self.update_body()
+                return True
 
+            if self.updated_sticky():
+                self.update_sticky()
+                return True
+        except prawcore.exceptions.ServerError:
+            self.logger.error("Server error: Sleeping for 1 minute.")
+            sleep(60)
+        except prawcore.exceptions.ResponseException:
+            self.logger.error("Response error: Sleeping for 1 minute.")
+            sleep(60)
+        except prawcore.exceptions.RequestException:
+            self.logger.error("Request error: Sleeping for 1 minute.")
+            sleep(60)
         # self.submission.comments.replace_more(limit=0)
 
         return False
