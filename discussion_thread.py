@@ -40,21 +40,33 @@ class DiscussionThread(object):
             """makes scheduler object"""
             self.logger.debug("Making scheduler")
             scheduler: Scheduler = Scheduler()
-            time: str = self.config.get("config", "time", fallback="1:00")
-            self.logger.debug("Setting discussion thread time to \"%s\"", time)
+            times: List[str] = []
+
+            try:
+                times = self.config.options("times")
+            except NoSectionError:
+                self.logger.warning("No times specified in the config, setting to 1:00")
+                times = ["1:00"]
 
             try:
                 days: List[str] = self.config.options("days")
             except NoSectionError:
-                self.logger.error("No days are specified in the config, setting to all days")
-                scheduler.every().day.at(time).do(self.post)
+                self.logger.warning("No days are specified in the config, setting to all days")
+                for time in times:
+                    try:
+                        scheduler.every().day.at(time).do(self.post)
+                    except ValueError:
+                        self.logger.debug("\"%s\" is not a valid time, skipping")
             else:
                 for day in days:
                     self.logger.debug("Adding day \"%s\" to scheduler", day)
-                    try:
-                        getattr(scheduler.every(), day).at(time).do(self.post)
-                    except AttributeError:
-                        self.logger.error("\"%s\" is not an valid day, skipping")
+                    for time in times:
+                        try:
+                            getattr(scheduler.every(), day).at(time).do(self.post)
+                        except AttributeError:
+                            self.logger.error("\"%s\" is not an valid day, skipping")
+                        except ValueError:
+                            self.logger.debug("\"%s\" is not a valid time, skipping")
 
             self.logger.debug("Scheduler made")
             return scheduler
