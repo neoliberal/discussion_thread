@@ -13,7 +13,7 @@ class DiscussionThread(object):
     def __init__(self, reddit: praw.Reddit, subreddit: str) -> None:
         def get_config() -> ConfigParser:
             """grabs config"""
-            parser: ConfigParser = ConfigParser(allow_no_value=True)
+            parser: ConfigParser = ConfigParser(allow_no_value=True, delimiters=('='))
             self.logger.debug("Grabbing config")
             config_string = self.subreddit.wiki["dt/config"].content_md
             if config_string:
