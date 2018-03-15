@@ -66,7 +66,7 @@ class DiscussionThread(object):
                         except AttributeError:
                             self.logger.error("\"%s\" is not an valid day, skipping", day)
                         except ValueError:
-                            self.logger.debug("\"%s\" is not a valid time, skipping", time)
+                            self.logger.warning("\"%s\" is not a valid time, skipping", time)
 
             self.logger.debug("Scheduler made")
             return scheduler
