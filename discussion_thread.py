@@ -64,9 +64,9 @@ class DiscussionThread(object):
                         try:
                             getattr(scheduler.every(), day).at(time).do(self.post)
                         except AttributeError:
-                            self.logger.error("\"%s\" is not an valid day, skipping")
+                            self.logger.error("\"%s\" is not an valid day, skipping", day)
                         except ValueError:
-                            self.logger.debug("\"%s\" is not a valid time, skipping")
+                            self.logger.debug("\"%s\" is not a valid time, skipping", time)
 
             self.logger.debug("Scheduler made")
             return scheduler
