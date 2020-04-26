@@ -1,4 +1,4 @@
 praw
 schedule
-slack_python_logging
+git+https://github.com/neoliberal/slack_python_logging
 tabulate
