@@ -15,7 +15,14 @@ class DiscussionThread(object):
             """grabs config"""
             parser: ConfigParser = ConfigParser(allow_no_value=True, delimiters=('='))
             self.logger.debug("Grabbing config")
-            config_string = self.subreddit.wiki["dt/config"].content_md
+            while True:
+                try:
+                    config_string = self.subreddit.wiki["dt/config"].content_md
+                    break
+                except:
+                    self.logger.error("Unable to retrieve config, wait 1 minute & retry")
+                    from time import sleep
+                    sleep(60)
             if config_string:
                 self.logger.debug("Config grabbed")
                 parser.read_string(config_string)
