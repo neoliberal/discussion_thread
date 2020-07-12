@@ -1,6 +1,9 @@
 """dicussion thread"""
 from configparser import ConfigParser, NoSectionError
+import json
 import logging
+import requests
+import time
 from typing import List, Optional, Dict, Tuple
 
 import praw
@@ -104,21 +107,56 @@ class DiscussionThread(object):
                 self.update_sticky()
                 return True
         except prawcore.exceptions.ServerError:
-            self.logger.error("Server error: Sleeping for 1 minute.")
+            self.logger.error("Reddit server error: Sleeping for 1 minute.")
             sleep(60)
         except prawcore.exceptions.ResponseException:
-            self.logger.error("Response error: Sleeping for 1 minute.")
+            self.logger.error("Reddit response error: Sleeping for 1 minute.")
             sleep(60)
         except prawcore.exceptions.RequestException:
-            self.logger.error("Request error: Sleeping for 1 minute.")
+            self.logger.error("Reddit request error: Sleeping for 1 minute.")
             sleep(60)
+        except requests.exceptions.HTTPError:
+            self.logger.error("Bad HTTP status fetching events: Sleeping for 1 minute.")
+            sleep(60)
+        except requests.exceptions.ConnectionError:
+            self.logger.error("Error connecting to events page: Sleeping for 1 minute.")
+            sleep(60)
+
         # self.submission.comments.replace_more(limit=0)
 
         return False
 
     def get_body(self) -> str:
         """gets body from wiki page"""
-        return self.subreddit.wiki["dt/config/body"].content_md
+        dt_body = self.subreddit.wiki["dt/config/body"].content_md
+        events = self.get_events()
+        return(dt_body + events)
+
+    def get_events(self) -> str:
+        """Get the upcoming events from the Neoliberal Project website"""
+        nl_project_events_url = "https://neoliberalproject.org/upcoming-events?format=json"
+        events_page = requests.get(nl_project_events_url)
+        events_page.raise_for_status() # Raise an error if we're rate limited
+        upcoming_events = events_page.json()['upcoming']
+        upcoming_events.sort(key = lambda event: event['startDate'])
+
+        if not upcoming_events:
+            # Don't bother posting the Upcoming events header if there aren't any
+            return("")
+
+        # Build a markdown list of events
+        output = ["", "", "## Upcoming Events", ""]
+        for event in upcoming_events:
+            current_epoch = time.time()
+            event_epoch = event['startDate'] / 1000 # convert ms to s
+            if event_epoch > current_epoch + (14*24*60*60):
+                # Skip any events further than 14 days out
+                continue
+            date_string = time.strftime('%b %d', time.localtime(event_epoch))
+            event_url = f'https://neoliberalproject.org{event["fullUrl"]}'
+            output.append(f'* {date_string}: [{event["title"]}]({event_url})')
+
+        return("\n".join(output))
 
     def post(self) -> bool:
         """posts the discussion thread"""

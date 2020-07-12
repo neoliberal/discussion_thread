@@ -22,7 +22,7 @@ def main() -> None:
     while True:
         thread.check()
         from time import sleep
-        sleep(5)
+        sleep(30)
 
 if __name__ == "__main__":
     main()
