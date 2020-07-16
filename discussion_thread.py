@@ -118,7 +118,7 @@ class DiscussionThread(object):
         except requests.exceptions.HTTPError:
             self.logger.error("Bad HTTP status fetching events: Sleeping for 1 minute.")
             sleep(60)
-        except requests.exceptions.ConnectionError:
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             self.logger.error("Error connecting to events page: Sleeping for 1 minute.")
             sleep(60)
 
@@ -135,7 +135,7 @@ class DiscussionThread(object):
     def get_events(self) -> str:
         """Get the upcoming events from the Neoliberal Project website"""
         nl_project_events_url = "https://neoliberalproject.org/upcoming-events?format=json"
-        events_page = requests.get(nl_project_events_url)
+        events_page = requests.get(nl_project_events_url, timeout=10)
         events_page.raise_for_status() # Raise an error if we're rate limited
         upcoming_events = events_page.json()['upcoming']
         upcoming_events.sort(key = lambda event: event['startDate'])
