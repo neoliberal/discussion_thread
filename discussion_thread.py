@@ -131,7 +131,12 @@ class DiscussionThread(object):
     def get_body(self) -> str:
         """gets body from wiki page"""
         dt_body = self.subreddit.wiki["dt/config/body"].content_md
-        events = self.get_events()
+        try:
+            events = self.get_events()
+        except Exception:
+            # Too many ways things can go wrong here, so let's just fail gracefully
+            logging.warning("unable to fetch events!")
+            events = ""
         return(dt_body + events)
 
     def get_events(self) -> str:
