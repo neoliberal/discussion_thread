@@ -1,7 +1,9 @@
 """dicussion thread"""
 from configparser import ConfigParser, NoSectionError
+from datetime import datetime
 import json
 import logging
+import pytz
 import requests
 import time
 from typing import List, Optional, Dict, Tuple
@@ -152,7 +154,11 @@ class DiscussionThread(object):
             if event_epoch > current_epoch + (14*24*60*60):
                 # Skip any events further than 14 days out
                 continue
-            date_string = time.strftime('%b %d', time.localtime(event_epoch))
+            # Dates will be given in New York time. If we ever have events in
+            # Australia, this will be a problem.
+            eastern_time = pytz.timezone('America/New_York')
+            event_date = datetime.fromtimestamp(event_epoch, eastern_time)
+            date_string = event_date.strftime('%b %d')
             event_url = f'https://neoliberalproject.org{event["fullUrl"]}'
             output.append(f'* {date_string}: [{event["title"]}]({event_url})')
 
