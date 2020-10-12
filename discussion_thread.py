@@ -147,10 +147,6 @@ class DiscussionThread(object):
         upcoming_events = events_page.json()['upcoming']
         upcoming_events.sort(key = lambda event: event['startDate'])
 
-        if not upcoming_events:
-            # Don't bother posting the Upcoming events header if there aren't any
-            return("")
-
         # Build a markdown list of events
         output = ["", "", "## Upcoming Events", ""]
         for event in upcoming_events:
@@ -166,6 +162,10 @@ class DiscussionThread(object):
             date_string = event_date.strftime('%b %d')
             event_url = f'https://neoliberalproject.org{event["fullUrl"]}'
             output.append(f'* {date_string}: [{event["title"]}]({event_url})')
+
+        if len(output) == 4:
+            # Don't bother posting the Upcoming events header if there aren't any
+            return("")
 
         return("\n".join(output))
 
