@@ -83,7 +83,11 @@ class DiscussionThread(object):
             self.logger.debug("Scheduler made")
             return scheduler
 
-        self.logger: logging.Logger = slack_logger.initialize("discussion_thread")
+        self.logger: logging.Logger = slack_logger.initialize(
+            app_name = "discussion_thread",
+            stream_loglevel = "INFO",
+            slack_loglevel = "CRITICAL",
+        )
         self.reddit: praw.Reddit = reddit
         self.subreddit: praw.models.Subreddit = self.reddit.subreddit(subreddit)
 
