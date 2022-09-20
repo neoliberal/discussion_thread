@@ -145,7 +145,7 @@ class DiscussionThread(object):
 
     def get_events(self) -> str:
         """Get the upcoming events from the Neoliberal Project website"""
-        nl_project_events_url = "https://neoliberalproject.org/upcoming-events?format=json"
+        nl_project_events_url = "https://cnliberalism.org/events?format=json"
         events_page = requests.get(nl_project_events_url, timeout=10)
         events_page.raise_for_status() # Raise an error if we're rate limited
         upcoming_events = events_page.json()['upcoming']
