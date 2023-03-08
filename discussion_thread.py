@@ -144,7 +144,7 @@ class DiscussionThread(object):
         return(dt_body + events)
 
     def get_events(self) -> str:
-        """Get the upcoming events from the Neoliberal Project website"""
+        """Get the upcoming events from the Center for New Liberalism website"""
         nl_project_events_url = "https://cnliberalism.org/events?format=json"
         events_page = requests.get(nl_project_events_url, timeout=10)
         events_page.raise_for_status() # Raise an error if we're rate limited
@@ -164,7 +164,7 @@ class DiscussionThread(object):
             eastern_time = pytz.timezone('America/New_York')
             event_date = datetime.fromtimestamp(event_epoch, eastern_time)
             date_string = event_date.strftime('%b %d')
-            event_url = f'https://neoliberalproject.org{event["fullUrl"]}'
+            event_url = f'https://cnliberalism.org{event["fullUrl"]}'
             output.append(f'* {date_string}: [{event["title"]}]({event_url})')
 
         if len(output) == 4:
