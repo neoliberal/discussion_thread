@@ -141,7 +141,8 @@ class DiscussionThread(object):
             # Too many ways things can go wrong here, so let's just fail gracefully
             logging.warning("unable to fetch events!")
             events = ""
-        return(dt_body + events)
+        new_groups = self.get_new_groups()
+        return(dt_body + new_groups + events)
 
     def get_events(self) -> str:
         """Get the upcoming events from the Center for New Liberalism website"""
@@ -156,8 +157,8 @@ class DiscussionThread(object):
         for event in upcoming_events:
             current_epoch = time.time()
             event_epoch = event['startDate'] / 1000 # convert ms to s
-            if event_epoch > current_epoch + (14*24*60*60):
-                # Skip any events further than 14 days out
+            if event_epoch > current_epoch + (10*24*60*60):
+                # Skip any events further than 10 days out
                 continue
             # Dates will be given in New York time. If we ever have events in
             # Australia, this will be a problem.
@@ -171,6 +172,32 @@ class DiscussionThread(object):
             # Don't bother posting the Upcoming events header if there aren't any
             return("")
 
+        return("\n".join(output))
+
+    def get_new_groups(self) -> List:
+        current_epoch = time.time()
+        after_epoch = current_epoch - (7*24*60*60) # Get past week
+        get_new_groups_url = f"https://neoliber.al/user_pinger_2/api/get_new_groups"
+        new_groups = requests.get(
+            get_new_groups_url,
+            params={"after_epoch": int(after_epoch)}
+        ).json()
+        if len(new_groups) == 0:
+            # Don't post anything if there are no new groups
+            return("")
+        output = ["", "", "## New Groups", ""]
+        for group in new_groups:
+            print(group)
+            name, description = group
+            # CAUTION - assuming we're using /u/groupbot here
+            # not portable, but I'm 99.9% sure no one else will ever use this
+            subscribe_url = (
+                "https://reddit.com/message/compose"
+                f"?to=groupbot&subject=Subscribe%20to%{name}"
+                f"&message=subscribe%20{name}"
+            )
+            # Is formatting a string like this goofy? I think it's kinda cute
+            output.append(f"* [{name}]({subscribe_url}): {description}")
         return("\n".join(output))
 
     def post(self) -> bool:
